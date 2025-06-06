@@ -19,7 +19,7 @@ private val retrofit = Retrofit.Builder()
     .build()
 
 interface BarangApiService {
-    @GET("static-api.jason")
+    @GET("barang.php")
     suspend fun getBarang(): List<Barang>
 }
 
@@ -29,7 +29,7 @@ object BarangApi {
     }
 
     fun getBarangUrl(imageId: String): String {
-        return "$BASE_URL$imageId.jpg"
+        return "${BASE_URL}image.php?id=$imageId"
     }
 }
 
