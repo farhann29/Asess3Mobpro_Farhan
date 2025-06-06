@@ -1,5 +1,6 @@
 package com.farhanfad0036.asses3olshop.network
 
+import com.farhanfad0036.asses3olshop.model.Barang
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import retrofit2.Retrofit
@@ -17,13 +18,17 @@ private val retrofit = Retrofit.Builder()
     .baseUrl(BASE_URL)
     .build()
 
-interface ShopApiService {
+interface BarangApiService {
     @GET("static-api.jason")
-    suspend fun getBarang(): List<BarangApi>
+    suspend fun getBarang(): List<Barang>
 }
 
 object BarangApi {
-    val service: ShopApiService by lazy {
-        retrofit.create(ShopApiService::class.java)
+    val service: BarangApiService by lazy {
+        retrofit.create(BarangApiService::class.java)
+    }
+
+    fun getBarangUrl(imageId: String): String {
+        return "$BASE_URL$imageId.jpg"
     }
 }
