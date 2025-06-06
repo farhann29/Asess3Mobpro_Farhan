@@ -1,4 +1,4 @@
-package com.farhanfad0036.asses3olshop.ui.theme
+package com.farhanfad0036.asses3olshop.ui.theme.theme
 
 import androidx.compose.ui.graphics.Color
 

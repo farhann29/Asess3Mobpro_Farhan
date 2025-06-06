@@ -1,6 +1,5 @@
-package com.farhanfad0036.asses3olshop.ui.theme
+package com.farhanfad0036.asses3olshop.ui.theme.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
