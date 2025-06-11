@@ -5,4 +5,6 @@
     <string name="try_again">Coba lagi</string>
     <string name="profil">Profil</string>
     <string name="tutup">Tutup</string>
+    <string name="logout">Logout</string>
+    <string name="tambah_barang">Tambah barang</string>
 </resources>

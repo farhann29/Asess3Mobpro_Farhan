@@ -14,6 +14,7 @@ coilCompose = "2.7.0"
 credentials = "1.5.0"
 googleid = "1.1.1"
 datastorePreferences = "1.1.4"
+androidImageCropper = "4.5.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -39,6 +40,7 @@ retrofit = {group = "com.squareup.retrofit2", name = "retrofit", version.ref = "
 converter-moshi = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "retrofit"}
 moshi-kotlin = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshiKotlin"}
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose"}
+android-image-cropper = { module = "com.vanniktech:android-image-cropper", version.ref = "androidImageCropper"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
