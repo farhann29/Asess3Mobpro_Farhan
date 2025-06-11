@@ -7,4 +7,9 @@
     <string name="tutup">Tutup</string>
     <string name="logout">Logout</string>
     <string name="tambah_barang">Tambah barang</string>
+    <string name="nama">Nama</string>
+    <string name="harga">Harga</string>
+    <string name="noWA">No WA</string>
+    <string name="batal">Batal</string>
+    <string name="simpan">Simpan</string>
 </resources>
