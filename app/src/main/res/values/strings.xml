@@ -8,8 +8,12 @@
     <string name="logout">Logout</string>
     <string name="tambah_barang">Tambah barang</string>
     <string name="nama">Nama</string>
-    <string name="harga">Harga</string>
-    <string name="noWA">No WA</string>
+    <string name="nama_latin">Nama latin</string>
+<!--    <string name="harga">Harga</string>-->
+<!--    <string name="noWA">No WA</string>-->
     <string name="batal">Batal</string>
-    <string name="simpan">Simpan</string>
+    <string name="simpan">Simpan`</string>
+    <string name="konfirmasi_hapus">Konfirmasi Hapus</string>
+    <string name="pesan_hapus">Anda yakin hapus ini?</string>
+    <string name="hapus">Hapus</string>
 </resources>

@@ -1,6 +1,3 @@
-package com.farhanfad0036.asses3olshop.ui.theme.screen
-
-import androidx.compose.ui.window.Dialog
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
@@ -24,28 +21,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.farhanfad0036.asses3olshop.R
-import com.farhanfad0036.asses3olshop.model.Barang
 import com.farhanfad0036.asses3olshop.ui.theme.theme.Asses3OlshopTheme
 
 @Composable
 fun BarangDialog(
     bitmap: Bitmap?,
     onDismissRequest: () -> Unit,
-    onConfirmation: (String, String, String) -> Unit
+    onConfirmation: (String, String) -> Unit
 ) {
     var nama by remember { mutableStateOf("") }
-    var harga by remember { mutableStateOf("") }
-    var nomorWA by remember { mutableStateOf("") }
+    var namaLatin by remember { mutableStateOf("") }
 
-    Dialog(onDismissRequest = {onDismissRequest()}) {
+    Dialog(onDismissRequest = { onDismissRequest() }) {
         Card(
             modifier = Modifier.padding(16.dp),
             shape = RoundedCornerShape(16.dp)
@@ -61,7 +55,7 @@ fun BarangDialog(
                 )
                 OutlinedTextField(
                     value = nama,
-                    onValueChange = { nama = it},
+                    onValueChange = { nama = it },
                     label = { Text(text = stringResource(id = R.string.nama)) },
                     maxLines = 1,
                     keyboardOptions = KeyboardOptions(
@@ -71,23 +65,12 @@ fun BarangDialog(
                     modifier = Modifier.padding(top = 8.dp)
                 )
                 OutlinedTextField(
-                    value = harga,
-                    onValueChange = { harga = it},
-                    label = { Text(text = stringResource(id = R.string.harga)) },
+                    value = namaLatin,
+                    onValueChange = { namaLatin = it },
+                    label = { Text(text = stringResource(id = R.string.nama_latin)) },
                     maxLines = 1,
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Next
-                    ),
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-                OutlinedTextField(
-                    value = nomorWA,
-                    onValueChange = { nomorWA = it},
-                    label = { Text(text = stringResource(id = R.string.noWA)) },
-                    maxLines = 1,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
+                        capitalization = KeyboardCapitalization.Sentences,
                         imeAction = ImeAction.Done
                     ),
                     modifier = Modifier.padding(top = 8.dp)
@@ -97,14 +80,14 @@ fun BarangDialog(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     OutlinedButton(
-                        onClick = {onDismissRequest() },
+                        onClick = { onDismissRequest() },
                         modifier = Modifier.padding(8.dp)
                     ) {
                         Text(text = stringResource(R.string.batal))
                     }
                     OutlinedButton(
-                        onClick = { onConfirmation(nama, harga, nomorWA)},
-                        enabled = nama.isNotEmpty() && harga.isNotEmpty() && nomorWA.isNotEmpty(),
+                        onClick = { onConfirmation(nama, namaLatin)},
+                        enabled = nama.isNotEmpty() && namaLatin.isNotEmpty(),
                         modifier = Modifier.padding(8.dp)
                     ) {
                         Text(text = stringResource(R.string.simpan))
@@ -123,7 +106,7 @@ fun AddDialogPreview() {
         BarangDialog(
             bitmap = null,
             onDismissRequest = {},
-            onConfirmation = { _, _, _ -> }
+            onConfirmation = {_, _ -> }
         )
     }
 }

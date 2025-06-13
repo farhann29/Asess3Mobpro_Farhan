@@ -41,14 +41,13 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun saveData(userId: String, nama: String, harga: String, noWa: String, bitmap: Bitmap) {
+    fun saveData(userId: String, nama: String, namaLatin: String, bitmap: Bitmap) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result = BarangApi.service.postBarang(
                     userId,
                     nama.toRequestBody("text/plain".toMediaTypeOrNull()),
-                    harga.toRequestBody("text/plain".toMediaTypeOrNull()),
-                    noWa.toRequestBody("text/plain".toMediaTypeOrNull()),
+                    namaLatin.toRequestBody("text/plain".toMediaTypeOrNull()),
                     bitmap.toMultipartBody()
                 )
                 if (result.status == "success")
@@ -57,6 +56,23 @@ class MainViewModel : ViewModel() {
                     throw Exception(result.message)
             } catch (e: Exception) {
                 Log.d("MainViewModel", "Failure: ${e.message}")
+                errorMessage.value = "Error: ${e.message}"
+            }
+        }
+    }
+    fun deletedData(userId: String, barangId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val result = BarangApi.service.deletedBarang(
+                    userId,
+                    barangId
+                )
+                if (result.status == "success")
+                    retrieveData(userId)
+                else
+                    throw Exception(result.message)
+            } catch (e: Exception) {
+                Log.d("Mainviewmodel", "Failure: ${e.message}")
                 errorMessage.value = "Error: ${e.message}"
             }
         }
