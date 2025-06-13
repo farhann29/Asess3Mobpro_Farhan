@@ -199,11 +199,22 @@ fun MainScreen() {
                 ProjekEditDialog(
                     projek = projek,
                     bitmap = bitmap,
-                    onDismissRequest = { showEditDialog = false }
-                ) { semester, mataKuliah ->
-                    viewModel.updateData(projek.id.toString(), user.email, semester, mataKuliah, bitmap!!)
-                    showEditDialog = false
-                }
+                    onDismissRequest = {
+                        showEditDialog = false
+                        isEditing = false
+                    },
+                    onConfirmation = { semester, mataKuliah ->
+                        viewModel.updateData(
+                            projek.id.toString(),
+                            user.email,
+                            semester,
+                            mataKuliah,
+                            bitmap!!
+                        )
+                        showEditDialog = false
+                        isEditing = false
+                    }
+                )
             }
         }
 
