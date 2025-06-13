@@ -1,6 +1,6 @@
 package com.farhanfad0036.asses3olshop.ui.theme.screen
 
-import BarangDialog
+import ProjekDialog
 import android.content.ContentResolver
 import android.content.Context
 import android.content.res.Configuration
@@ -11,36 +11,21 @@ import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -62,6 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
@@ -78,10 +65,10 @@ import com.canhub.cropper.CropImageOptions
 import com.canhub.cropper.CropImageView
 import com.farhanfad0036.asses3olshop.BuildConfig
 import com.farhanfad0036.asses3olshop.R
-import com.farhanfad0036.asses3olshop.model.Barang
+import com.farhanfad0036.asses3olshop.model.Projek
 import com.farhanfad0036.asses3olshop.model.User
 import com.farhanfad0036.asses3olshop.network.ApiStatus
-import com.farhanfad0036.asses3olshop.network.BarangApi
+import com.farhanfad0036.asses3olshop.network.ProjekApi
 import com.farhanfad0036.asses3olshop.network.UserDataStore
 import com.farhanfad0036.asses3olshop.ui.theme.theme.Asses3OlshopTheme
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
@@ -90,6 +77,7 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingExcept
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,15 +89,33 @@ fun MainScreen() {
     val viewModel: MainViewModel = viewModel()
     val errorMessage by viewModel.errorMessage
 
+    val cropOptions = CropImageContractOptions(
+        null, CropImageOptions(
+            imageSourceIncludeGallery = true,
+            imageSourceIncludeCamera = true,
+            fixAspectRatio = true
+        )
+    )
+
     var showDialog by remember { mutableStateOf(false) }
-    var showBarangDialog by remember { mutableStateOf(false) }
+    var showProjekDialog by remember { mutableStateOf(false) }
     var showHapusDialog by remember { mutableStateOf(false) }
-    var barangToDelete by remember { mutableStateOf<Barang?>(null) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var projekToDelete by remember { mutableStateOf<Projek?>(null) }
+    var projekToEdit by remember { mutableStateOf<Projek?>(null) }
+
+    var isEditing by remember { mutableStateOf(false) }
 
     var bitmap: Bitmap? by remember { mutableStateOf(null) }
     val launcher = rememberLauncherForActivityResult(CropImageContract()) {
         bitmap = getCropperImage(context.contentResolver, it)
-        if (bitmap != null) showBarangDialog = true
+        if (bitmap != null) {
+            if (isEditing) {
+                showEditDialog = true
+            } else {
+                showProjekDialog = true
+            }
+        }
     }
 
     Scaffold(
@@ -142,18 +148,15 @@ fun MainScreen() {
         },
         floatingActionButton =  {
             FloatingActionButton(onClick = {
-                val options = CropImageContractOptions(
-                    null, CropImageOptions(
-                        imageSourceIncludeGallery = false,
-                        imageSourceIncludeCamera = true,
-                        fixAspectRatio = true
-                    )
-                )
-                launcher.launch(options)
+                if (user.email.isEmpty()) {
+                    Toast.makeText(context, "Harus login terlebih dahulu", Toast.LENGTH_SHORT).show()
+                } else {
+                    launcher.launch(cropOptions)
+                }
             }) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.tambah_barang)
+                    contentDescription = stringResource(R.string.tambah_projek)
                 )
             }
         }
@@ -161,10 +164,14 @@ fun MainScreen() {
         ScreenContent(
             viewModel = viewModel,
             userId = user.email,
-            currentUserId = user.email,
-            onDeleteClick = { barang ->
-                barangToDelete = barang
+            onDeleteClick = { projek ->
+                projekToDelete = projek
                 showHapusDialog = true
+            },
+            onEditItem = { projek ->
+                projekToEdit = projek
+                isEditing = true
+                launcher.launch(cropOptions)
             },
             modifier = Modifier.padding(innerPadding)
         )
@@ -178,12 +185,25 @@ fun MainScreen() {
             }
         }
 
-        if (showBarangDialog) {
-            BarangDialog(
+        if (showProjekDialog) {
+            ProjekDialog(
                 bitmap = bitmap,
-                onDismissRequest = { showBarangDialog = false }) { nama, namaLatin ->
-                viewModel.saveData(user.email, nama, namaLatin, bitmap!!)
-                showBarangDialog = false
+                onDismissRequest = { showProjekDialog = false }) { semester, mataKuliah ->
+                viewModel.saveData(user.email, semester, mataKuliah, bitmap!!)
+                showProjekDialog = false
+            }
+        }
+
+        if (showEditDialog) {
+            projekToEdit?.let { projek ->
+                ProjekEditDialog(
+                    projek = projek,
+                    bitmap = bitmap,
+                    onDismissRequest = { showEditDialog = false }
+                ) { semester, mataKuliah ->
+                    viewModel.updateData(projek.id.toString(), user.email, semester, mataKuliah, bitmap!!)
+                    showEditDialog = false
+                }
             }
         }
 
@@ -191,11 +211,11 @@ fun MainScreen() {
             DisplayAlertDialog(
                 onDismissRequest = {
                     showHapusDialog = false
-                    barangToDelete = null
+                    projekToDelete = null
                 },
                 onConfirmation = {
-                    barangToDelete?.let { barang ->
-                        viewModel.deletedData(user.email, barang.id)
+                    projekToDelete?.let { projek ->
+                        viewModel.deletedData(user.email, projek.id)
                     }
                 }
             )
@@ -212,8 +232,8 @@ fun MainScreen() {
 fun ScreenContent(
     viewModel: MainViewModel,
     userId: String,
-    currentUserId: String,
-    onDeleteClick: (Barang) -> Unit,
+    onDeleteClick: (Projek) -> Unit,
+    onEditItem: (Projek) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val data by viewModel.data
@@ -234,17 +254,31 @@ fun ScreenContent(
         }
 
         ApiStatus.SUCCESS -> {
+            val context = LocalContext.current
             LazyVerticalGrid(
                 modifier = modifier.fillMaxSize().padding(4.dp),
                 columns = GridCells.Fixed(2),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-                items(data) { barang ->
+                itemsIndexed(data) { index, projek ->
+                    val showDeleteButton = index >= 1
                     ListItem(
-                        barang = barang,
-                        onDeleteClick = { onDeleteClick(barang) }
+                        projek = projek,
+                        onItemClick = {
+                            if (index == 0) {
+                                Toast.makeText(
+                                    context,
+                                    "Data ini tidak bisa diedit",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                onEditItem(projek)
+                            }
+                        },
+                        onDeleteClick = { onDeleteClick(projek) },
+                        showDeleteButton = showDeleteButton
                     )
-                    Log.d("DEBUG_DELETE", "Barang: ${barang.nama}, BarangUserId: '${barang.userId}', CurrentUserId: '$currentUserId', IsOwner: ${barang.userId == currentUserId && currentUserId.isNotEmpty()}")
+                    Log.d("DEBUG_DELETE", "Index: $index, Semester ${projek.semester}, ShowDeleteButton: $showDeleteButton")
                 }
             }
         }
@@ -270,28 +304,25 @@ fun ScreenContent(
 
 @Composable
 fun ListItem(
-    barang: Barang,
-    onDeleteClick: () -> Unit
+    projek: Projek,
+    onDeleteClick: () -> Unit,
+    onItemClick: () -> Unit,
+    showDeleteButton: Boolean
 ) {
-    val textColor = if (barang.nama.equals("ayam", ignoreCase = true) || barang.nama.equals("angsa", ignoreCase = true)) {
-        Color.White
-    } else {
-        MaterialTheme.colorScheme.onSurface
-    }
-
     Box(
         modifier = Modifier
             .padding(4.dp)
             .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.medium)
             .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colorScheme.surface)
+            .clickable { onItemClick() }
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(BarangApi.getBarangUrl(barang.imageId))
+                .data(ProjekApi.getProjekUrl(projek.gambar))
                 .crossfade(true)
                 .build(),
-            contentDescription = stringResource(R.string.gambar, barang.nama),
+            contentDescription = stringResource(R.string.gambar, projek.semester),
             contentScale = ContentScale.Crop,
             placeholder = painterResource(id = R.drawable.loading_img),
             error = painterResource(id = R.drawable.broken_img),
@@ -299,9 +330,7 @@ fun ListItem(
                 .fillMaxWidth()
                 .aspectRatio(1f)
         )
-
-        if (!barang.nama.equals("ayam", ignoreCase = true) &&
-            !barang.nama.equals("angsa", ignoreCase = true)) {
+        if (showDeleteButton) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -322,7 +351,6 @@ fun ListItem(
                 )
             }
         }
-
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -333,14 +361,14 @@ fun ListItem(
                 .padding(8.dp)
         ) {
             Text(
-                text = barang.nama,
+                text = projek.semester,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = barang.namaLatin,
+                text = projek.mataKuliah,
                 fontStyle = FontStyle.Italic,
                 fontSize = 14.sp,
                 color = Color.White,
@@ -419,6 +447,84 @@ private fun getCropperImage(
     } else {
         val source = ImageDecoder.createSource(resolver, uri)
         ImageDecoder.decodeBitmap(source)
+    }
+}
+
+@Composable
+fun ProjekEditDialog(
+    projek: Projek,
+    bitmap: Bitmap?,
+    onDismissRequest: () -> Unit,
+    onConfirmation: (String, String) -> Unit
+) {
+    var semester by remember { mutableStateOf(projek.semester) }
+    var mataKuliah by remember { mutableStateOf(projek.mataKuliah) }
+
+    Dialog(onDismissRequest = { onDismissRequest() }) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Edit Projek",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                if (bitmap != null) {
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = semester,
+                    onValueChange = { semester = it },
+                    label = { Text("Semester") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = mataKuliah,
+                    onValueChange = { mataKuliah = it },
+                    label = { Text("Mata Kuliah") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = { onDismissRequest() }) {
+                        Text("Batal")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = {
+                        onConfirmation(semester, mataKuliah)
+                    }) {
+                        Text("Simpan Perubahan")
+                    }
+                }
+            }
+        }
     }
 }
 

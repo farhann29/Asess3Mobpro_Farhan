@@ -5,9 +5,9 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.farhanfad0036.asses3olshop.model.Barang
+import com.farhanfad0036.asses3olshop.model.Projek
 import com.farhanfad0036.asses3olshop.network.ApiStatus
-import com.farhanfad0036.asses3olshop.network.BarangApi
+import com.farhanfad0036.asses3olshop.network.ProjekApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -19,7 +19,7 @@ import java.io.ByteArrayOutputStream
 
 class MainViewModel : ViewModel() {
 
-    var data = mutableStateOf(emptyList<Barang>())
+    var data = mutableStateOf(emptyList<Projek>())
         private set
 
     var status = MutableStateFlow(ApiStatus.LOADING)
@@ -32,7 +32,7 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             status.value = ApiStatus.LOADING
             try {
-                data.value = BarangApi.service.getBarang(userId)
+                data.value = ProjekApi.service.getProjek(userId)
                 status.value = ApiStatus.SUCCESS
             } catch (e: Exception) {
                 Log.d("MainViewModel", "Failure: ${e.message}")
@@ -41,13 +41,13 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun saveData(userId: String, nama: String, namaLatin: String, bitmap: Bitmap) {
+    fun saveData(userId: String, semester: String, mataKuliah: String, bitmap: Bitmap) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val result = BarangApi.service.postBarang(
+                val result = ProjekApi.service.postProjek(
                     userId,
-                    nama.toRequestBody("text/plain".toMediaTypeOrNull()),
-                    namaLatin.toRequestBody("text/plain".toMediaTypeOrNull()),
+                    semester.toRequestBody("text/plain".toMediaTypeOrNull()),
+                    mataKuliah.toRequestBody("text/plain".toMediaTypeOrNull()),
                     bitmap.toMultipartBody()
                 )
                 if (result.status == "success")
@@ -60,12 +60,12 @@ class MainViewModel : ViewModel() {
             }
         }
     }
-    fun deletedData(userId: String, barangId: String) {
+    fun deletedData(userId: String, projekId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val result = BarangApi.service.deletedBarang(
+                val result = ProjekApi.service.deletedProjek(
                     userId,
-                    barangId
+                    projekId.toString()
                 )
                 if (result.status == "success")
                     retrieveData(userId)
@@ -78,6 +78,33 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    fun updateData(id: String, userId: String, semester: String, mataKuliah: String, bitmap: Bitmap) {
+        viewModelScope.launch(Dispatchers.IO) {
+
+            status.value = ApiStatus.LOADING
+            try {
+                val result = ProjekApi.service.updateProjek(
+                    email = userId,
+                    id = id,
+                    method = "PUT".toRequestBody("text/plain".toMediaTypeOrNull()),
+                    semester = semester.toRequestBody("text/plain".toMediaTypeOrNull()),
+                    mataKuliah = mataKuliah.toRequestBody("text/plain".toMediaTypeOrNull()),
+                    gambar = bitmap.toMultipartBody()
+                )
+
+                if (result.status == "success") {
+                    retrieveData(userId)
+                } else {
+                    throw Exception(result.message)
+                }
+            } catch (e: Exception) {
+                Log.d("MainViewModel", "Update Failure: ${e.message}")
+                errorMessage.value = "Update Gagal: ${e.message}"
+                status.value = ApiStatus.FAILED
+            }
+        }
+    }
+
     private fun Bitmap.toMultipartBody(): MultipartBody.Part {
         val stream = ByteArrayOutputStream()
         compress(Bitmap.CompressFormat.JPEG, 80, stream)
@@ -85,7 +112,7 @@ class MainViewModel : ViewModel() {
         val requestBody = byteArray.toRequestBody(
             "image/jpg".toMediaTypeOrNull(), 0, byteArray.size)
         return MultipartBody.Part.createFormData(
-            "image", "image.jpg", requestBody
+            "gambar", "image.jpg", requestBody
         )
     }
     fun clearMessage() {errorMessage.value = null}

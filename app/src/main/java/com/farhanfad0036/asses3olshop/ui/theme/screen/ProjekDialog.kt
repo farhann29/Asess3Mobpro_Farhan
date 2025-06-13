@@ -31,13 +31,13 @@ import com.farhanfad0036.asses3olshop.R
 import com.farhanfad0036.asses3olshop.ui.theme.theme.Asses3OlshopTheme
 
 @Composable
-fun BarangDialog(
+fun ProjekDialog(
     bitmap: Bitmap?,
     onDismissRequest: () -> Unit,
     onConfirmation: (String, String) -> Unit
 ) {
-    var nama by remember { mutableStateOf("") }
-    var namaLatin by remember { mutableStateOf("") }
+    var semester by remember { mutableStateOf("") }
+    var  mataKuliah by remember { mutableStateOf("") }
 
     Dialog(onDismissRequest = { onDismissRequest() }) {
         Card(
@@ -54,9 +54,9 @@ fun BarangDialog(
                     modifier = Modifier.fillMaxWidth().aspectRatio(1f)
                 )
                 OutlinedTextField(
-                    value = nama,
-                    onValueChange = { nama = it },
-                    label = { Text(text = stringResource(id = R.string.nama)) },
+                    value = semester,
+                    onValueChange = { semester = it },
+                    label = { Text(text = stringResource(id = R.string.semester)) },
                     maxLines = 1,
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Words,
@@ -65,9 +65,9 @@ fun BarangDialog(
                     modifier = Modifier.padding(top = 8.dp)
                 )
                 OutlinedTextField(
-                    value = namaLatin,
-                    onValueChange = { namaLatin = it },
-                    label = { Text(text = stringResource(id = R.string.nama_latin)) },
+                    value = mataKuliah,
+                    onValueChange = { mataKuliah = it },
+                    label = { Text(text = stringResource(id = R.string.mata_kuliah)) },
                     maxLines = 1,
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Sentences,
@@ -86,8 +86,8 @@ fun BarangDialog(
                         Text(text = stringResource(R.string.batal))
                     }
                     OutlinedButton(
-                        onClick = { onConfirmation(nama, namaLatin)},
-                        enabled = nama.isNotEmpty() && namaLatin.isNotEmpty(),
+                        onClick = { onConfirmation(semester, mataKuliah)},
+                        enabled = semester.isNotEmpty() && mataKuliah.isNotEmpty(),
                         modifier = Modifier.padding(8.dp)
                     ) {
                         Text(text = stringResource(R.string.simpan))
@@ -103,7 +103,7 @@ fun BarangDialog(
 @Composable
 fun AddDialogPreview() {
     Asses3OlshopTheme {
-        BarangDialog(
+        ProjekDialog(
             bitmap = null,
             onDismissRequest = {},
             onConfirmation = {_, _ -> }
